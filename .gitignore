@@ -1,3 +1,23 @@
+app.conf
+tmp
+vendor/
+output/
+.statsd/
+.swp
+.swo
+.swn
+linker
+czp-api-server
+nohup.out
+/log
+.statsd/
+.idea/
+go_build_main_go
+.DS_Store
+czp_api_server
+app/service/test/log
+
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
