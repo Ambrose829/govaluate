@@ -1,70 +1,63 @@
 package govaluate
 
-/*
-	Represents the valid symbols for operators.
-
-*/
 type OperatorSymbol int
 
 const (
-	VALUE OperatorSymbol = iota
-	LITERAL
-	NOOP
-	EQ
-	NEQ
-	GT
-	LT
-	GTE
-	LTE
-	REQ
-	NREQ
-	IN
-
-	AND
-	OR
-
-	PLUS
-	MINUS
-	BITWISE_AND
-	BITWISE_OR
-	BITWISE_XOR
-	BITWISE_LSHIFT
-	BITWISE_RSHIFT
-	MULTIPLY
-	DIVIDE
-	MODULUS
-	EXPONENT
-
-	NEGATE
-	INVERT
-	BITWISE_NOT
-
-	TERNARY_TRUE
-	TERNARY_FALSE
-	COALESCE
-
-	FUNCTIONAL
-	ACCESS
-	SEPARATE
+	VALUE          OperatorSymbol = iota // 用于表示值的操作符标志
+	LITERAL                              // 用于表示文字字面量的操作符标志
+	NOOP                                 // 用于表示空操作的操作符标志
+	EQ                                   // 相等比较操作符标志
+	NEQ                                  // 不等比较操作符标志
+	GT                                   // 大于比较操作符标志
+	LT                                   // 小于比较操作符标志
+	GTE                                  // 大于等于比较操作符标志
+	LTE                                  // 小于等于比较操作符标志
+	IN                                   // 包含操作符标志
+	NOTIN                                // 包含操作符标志
+	REQ                                  // 正则表达式匹配操作符标志
+	NREQ                                 // 正则表达式不匹配操作符标志
+	AND                                  // 逻辑与操作符标志
+	OR                                   // 逻辑或操作符标志
+	MODULUS                              // 取余操作符标志
+	EXPONENT                             // 指数操作符标志
+	PLUS                                 // 加法操作符标志
+	MINUS                                // 减法操作符标志
+	MULTIPLY                             // 乘法操作符标志
+	DIVIDE                               // 除法操作符标志
+	BITWISE_AND                          // 位与操作符标志
+	BITWISE_OR                           // 位或操作符标志
+	BITWISE_XOR                          // 位异或操作符标志
+	BITWISE_LSHIFT                       // 位左移操作符标志
+	BITWISE_RSHIFT                       // 位右移操作符标志
+	BITWISE_NOT                          // 位非操作符标志
+	INVERT                               // 位反操作符标志
+	NEGATE                               // 取反(非)操作符标志
+	TERNARY_TRUE                         // 28: 三元条件操作符中的真条件标志
+	TERNARY_FALSE                        // 29: 三元条件操作符中的假条件标志
+	COALESCE                             // 30: 合并操作符标志
+	FUNCTIONAL                           // 31: 函数调用操作符标志
+	ACCESS                               // 32: 访问操作符标志
+	SEPARATE                             // 33: 分隔操作符标志
 )
 
-type operatorPrecedence int
+type operatorPrecedence int // 操作符的优先级
 
 const (
-	noopPrecedence operatorPrecedence = iota
-	valuePrecedence
-	functionalPrecedence
-	prefixPrecedence
-	exponentialPrecedence
-	additivePrecedence
-	bitwisePrecedence
-	bitwiseShiftPrecedence
-	multiplicativePrecedence
-	comparatorPrecedence
-	ternaryPrecedence
-	logicalAndPrecedence
-	logicalOrPrecedence
-	separatePrecedence
+	noopPrecedence           operatorPrecedence = iota // 无操作的优先级
+	valuePrecedence                                    // 值的优先级
+	functionalPrecedence                               // 函数的优先级
+	prefixPrecedence                                   // 前缀操作符的优先级
+	exponentialPrecedence                              // 指数操作符的优先级
+	additivePrecedence                                 // 加法操作符的优先级
+	bitwisePrecedence                                  // 位操作符的优先级
+	bitwiseShiftPrecedence                             // 位移操作符的优先级
+	multiplicativePrecedence                           // 乘法操作符的优先级
+	comparatorPrecedence                               // 比较操作符的优先级
+	ternaryPrecedence                                  // 三元条件操作符的优先级
+	logicalAndPrecedence                               // 逻辑与操作符的优先级
+	logicalOrPrecedence                                // 逻辑或操作符的优先级
+	separatePrecedence                                 // 分割操作符的优先级
+
 )
 
 func findOperatorPrecedenceForSymbol(symbol OperatorSymbol) operatorPrecedence {
@@ -141,11 +134,7 @@ func findOperatorPrecedenceForSymbol(symbol OperatorSymbol) operatorPrecedence {
 	return valuePrecedence
 }
 
-/*
-	Map of all valid comparators, and their string equivalents.
-	Used during parsing of expressions to determine if a symbol is, in fact, a comparator.
-	Also used during evaluation to determine exactly which comparator is being used.
-*/
+// 比较
 var comparatorSymbols = map[string]OperatorSymbol{
 	"==": EQ,
 	"!=": NEQ,
@@ -201,7 +190,7 @@ var ternarySymbols = map[string]OperatorSymbol{
 	"??": COALESCE,
 }
 
-// this is defined separately from additiveSymbols et al because it's needed for parsing, not stage planning.
+// 计算
 var modifierSymbols = map[string]OperatorSymbol{
 	"+":  PLUS,
 	"-":  MINUS,
@@ -220,10 +209,7 @@ var separatorSymbols = map[string]OperatorSymbol{
 	",": SEPARATE,
 }
 
-/*
-	Returns true if this operator is contained by the given array of candidate symbols.
-	False otherwise.
-*/
+// IsModifierType 判断运算符是否已定义
 func (this OperatorSymbol) IsModifierType(candidate []OperatorSymbol) bool {
 
 	for _, symbolType := range candidate {
@@ -236,10 +222,10 @@ func (this OperatorSymbol) IsModifierType(candidate []OperatorSymbol) bool {
 }
 
 /*
-	Generally used when formatting type check errors.
-	We could store the stringified symbol somewhere else and not require a duplicated codeblock to translate
-	OperatorSymbol to string, but that would require more memory, and another field somewhere.
-	Adding operators is rare enough that we just stringify it here instead.
+通常用于格式化类型检查错误时。
+我们可以将字符串化的符号存储在其他地方，而不需要重复的代码块来翻译
+操作符符号到字符串，但这将需要更多的内存，并在某处的另一个字段。
+添加操作符很少见，所以我们在这里只对其进行字符串化。
 */
 func (this OperatorSymbol) String() string {
 

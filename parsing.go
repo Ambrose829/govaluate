@@ -81,7 +81,7 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 
 		kind = UNKNOWN
 
-		// numeric constant
+		// 数字
 		if isNumeric(character) {
 
 			if stream.canRead() && character == '0' {
@@ -115,7 +115,7 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 			break
 		}
 
-		// comma, separator
+		// 逗号,分隔符
 		if character == ',' {
 
 			tokenValue = ","
@@ -139,6 +139,7 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 		}
 
 		// regular variable - or function?
+		// 判断是否为变量 或者 方法？
 		if unicode.IsLetter(character) {
 
 			tokenString = readTokenUntilFalse(stream, isVariableName)
@@ -203,6 +204,7 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 			break
 		}
 
+		// 是引用
 		if !isNotQuote(character) {
 			tokenValue, completed = readUntilFalse(stream, true, false, true, isNotQuote)
 
@@ -210,10 +212,10 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 				return ExpressionToken{}, errors.New("Unclosed string literal"), false
 			}
 
-			// advance the stream one position, since reading until false assumes the terminator is a real token
+			// 不满足条件的字符已被读出，索引需要归位
 			stream.rewind(-1)
 
-			// check to see if this can be parsed as a time.
+			// 校验是否为时间
 			tokenTime, found = tryParseTime(tokenValue.(string))
 			if found {
 				kind = TIME
@@ -240,8 +242,9 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 		tokenString = readTokenUntilFalse(stream, isNotAlphanumeric)
 		tokenValue = tokenString
 
-		// quick hack for the case where "-" can mean "prefixed negation" or "minus", which are used
-		// very differently.
+		// 快速破解“-”可以表示“带前缀的否定”或“减号”的情况
+		// 非常不同。
+		// 判断是否是运算操作符
 		if state.canTransitionTo(PREFIX) {
 			_, found = prefixSymbols[tokenString]
 			if found {
@@ -298,8 +301,8 @@ func readTokenUntilFalse(stream *lexerStream, condition func(rune) bool) string 
 }
 
 /*
-	Returns the string that was read until the given [condition] was false, or whitespace was broken.
-	Returns false if the stream ended before whitespace was broken or condition was met.
+Returns the string that was read until the given [condition] was false, or whitespace was broken.
+Returns false if the stream ended before whitespace was broken or condition was met.
 */
 func readUntilFalse(stream *lexerStream, includeWhitespace bool, breakWhitespace bool, allowEscaping bool, condition func(rune) bool) (string, bool) {
 
@@ -345,8 +348,8 @@ func readUntilFalse(stream *lexerStream, includeWhitespace bool, breakWhitespace
 }
 
 /*
-	Checks to see if any optimizations can be performed on the given [tokens], which form a complete, valid expression.
-	The returns slice will represent the optimized (or unmodified) list of tokens to use.
+Checks to see if any optimizations can be performed on the given [tokens], which form a complete, valid expression.
+The returns slice will represent the optimized (or unmodified) list of tokens to use.
 */
 func optimizeTokens(tokens []ExpressionToken) ([]ExpressionToken, error) {
 
@@ -385,7 +388,7 @@ func optimizeTokens(tokens []ExpressionToken) ([]ExpressionToken, error) {
 }
 
 /*
-	Checks the balance of tokens which have multiple parts, such as parenthesis.
+Checks the balance of tokens which have multiple parts, such as parenthesis.
 */
 func checkBalance(tokens []ExpressionToken) error {
 
@@ -452,6 +455,7 @@ func isNotAlphanumeric(character rune) bool {
 		!isNotQuote(character))
 }
 
+// 是不是变量名字
 func isVariableName(character rune) bool {
 
 	return unicode.IsLetter(character) ||
@@ -466,9 +470,9 @@ func isNotClosingBracket(character rune) bool {
 }
 
 /*
-	Attempts to parse the [candidate] as a Time.
-	Tries a series of standardized date formats, returns the Time if one applies,
-	otherwise returns false through the second return.
+Attempts to parse the [candidate] as a Time.
+Tries a series of standardized date formats, returns the Time if one applies,
+otherwise returns false through the second return.
 */
 func tryParseTime(candidate string) (time.Time, bool) {
 
